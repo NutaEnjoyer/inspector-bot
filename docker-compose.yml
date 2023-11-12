@@ -1,0 +1,12 @@
+version: '2.8'
+
+services:
+  bot:
+    build: .
+    command: sh -c 'python main.py'
+    env_file:
+      - ./home/inspector/.env
+    volumes:
+      - /home/inspector/database.pt:database.pt
+    restart: always
+    container_name: inspector-bot

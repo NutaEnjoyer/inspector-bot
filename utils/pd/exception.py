@@ -1,0 +1,4 @@
+
+
+class NonExistTable(Exception):
+    ...
