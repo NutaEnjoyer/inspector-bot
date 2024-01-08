@@ -22,3 +22,21 @@ class OnlyUser(BaseFilter):
         
         except KeyError:
             return False
+
+
+class OnlyDefaultUser(BaseFilter):
+
+    def __init__(self, pd: PandasDatabase) -> None:
+        """
+        * Default start for new user
+        """
+        super().__init__()
+
+        self.table = pd.get_table("user")
+
+    async def __call__(self, ctx: Message) -> bool:
+        try:
+            return self.table.at[ctx.from_user.id, "status"] == UserStatus.DEFAULT.value
+
+        except KeyError:
+            return False

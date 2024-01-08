@@ -19,6 +19,7 @@ async def main():
     
     loop.create_task(DeleterService.start_deleter(pd, bot))
 
+
     await dp.start_polling(bot)
 
 

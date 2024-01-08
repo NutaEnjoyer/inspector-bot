@@ -131,7 +131,7 @@ async def main(ctx : Message, state : FSMContext, forced_group_name : str = None
         text=templates.wd_edit.group_dont_exist_err
     )
 
-        
+
     response_text = templates.wd_edit.text.format(
         group_name=work_name_group,
         group_len=len(group.word),

@@ -72,6 +72,7 @@ async def creating(ctx : Message, state : FSMContext):
     
     # * When state finished
     data, args = await state.get_data(), list(args_by_state.values())
+    print(data, args)
     new_words : List[str] = data.get(args[2]).lower().split()
     all_words = WdEditService.series_words_list(pd.get_table("word").get("word"))
     ignore_words = WdEditService.remove_exist(new_words, all_words)

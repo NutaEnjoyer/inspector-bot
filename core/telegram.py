@@ -5,5 +5,5 @@ from utils import config
 
 
 # * Init telegram bot
-bot = Bot(token=config.TOKEN, parse_mode=ParseMode.HTML)
+bot = Bot(token=config.TOKEN, parse_mode=ParseMode.HTML, disable_web_page_preview=True)
 

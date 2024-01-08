@@ -1,10 +1,10 @@
 from os import path
-from utils.pt import PandasDatabase
-from utils.table import User, Word, GroupMessage
+from utils.pd import PandasDatabase
+from utils.table import User, Word, GroupMessage, City
 
 
 pd = PandasDatabase(
-    filename=path.join("database.pt"),
-    tables=dict(user=User, word=Word, gmsg=GroupMessage)
+    filename=path.join("data/database.txt"),
+    tables=dict(user=User, word=Word, gmsg=GroupMessage, city=City)
 )
 

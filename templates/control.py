@@ -6,6 +6,7 @@ class Button:
 
 
     wd = KeyboardButton(text="📕 Словарь")
+    ct = KeyboardButton(text="🏙 Город")
 
 
 start_text = """
@@ -13,5 +14,6 @@ start_text = """
 """ 
 
 start_kb = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
-    [Button.wd]
+    [Button.wd],
+    [Button.ct]
 ])

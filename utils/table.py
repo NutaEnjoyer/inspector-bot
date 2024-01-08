@@ -34,4 +34,9 @@ class GroupMessage(BaseModel):
     time : float
     
 
+class City(BaseModel):
+
+    index : str
+    message : str
+    channel_url : int
 

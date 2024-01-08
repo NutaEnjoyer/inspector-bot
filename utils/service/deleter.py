@@ -4,7 +4,7 @@ from datetime import datetime, timedelta
 from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest, TelegramMigrateToChat
 
-from ..pt import PandasDatabase
+from ..pd import PandasDatabase
 
 
 async def check_message(pd : PandasDatabase, bot : Bot) -> timedelta.seconds:
@@ -17,7 +17,7 @@ async def check_message(pd : PandasDatabase, bot : Bot) -> timedelta.seconds:
     all_message = table.where(table["time"].apply(lambda x : datetime.fromtimestamp(x) < datetime.now()))
     first_index = all_message.first_valid_index()
     delta = datetime.now() - datetime.fromtimestamp(all_message.at[first_index, "time"])
-    delta_max = timedelta(minutes=9)
+    delta_max = timedelta(minutes=1)
 
     if delta < delta_max:
         return (delta_max - delta).total_seconds()

@@ -6,6 +6,8 @@ from ast import literal_eval
 from pydantic import BaseModel
 from pandas import DataFrame
 
+
+
 from .exception import NonExistTable
 
 
@@ -43,6 +45,18 @@ class PandasDatabase:
         
         self._write()
 
+    def delete(self, tablename: str, index: int) -> None:
+        table = self.get_table(tablename)
+
+        if table is None:
+            raise NonExistTable
+
+        if index not in table.index:
+            raise NonExistTable
+
+        table.drop(index, inplace=True)
+
+        self._write()
 
     def get_table(self, tablename : str) -> DataFrame:
         
@@ -86,8 +100,8 @@ class PandasDatabase:
         for name, df in self.local.items():
             valid_data.setdefault(name, df.to_dict())
 
-        with open(self._filename, "w") as file:
-            file.write(str(valid_data))
+        with open(self._filename, "w", encoding='utf-8') as file:
+            file.write(str(valid_data).replace('False', 'false').replace('None', 'nan'))
 
 
     def _read(self) -> None:
@@ -95,10 +109,9 @@ class PandasDatabase:
         Save all data to local var
         """
 
-        with open(self._filename, "r") as file:
-            data = literal_eval(file.read())
+        with open(self._filename, "r", encoding='utf-8') as file:
+            data = literal_eval(file.read().replace('nan', 'None').replace('false', 'False'))
+
 
         for key, value in data.items():
             self.local[key] = DataFrame(data=value, dtype=object)
-
-    
