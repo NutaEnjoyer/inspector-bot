@@ -38,5 +38,6 @@ class City(BaseModel):
 
     index : str
     message : str
+    word : List[str]
     channel_url : int
 

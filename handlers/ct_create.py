@@ -98,13 +98,16 @@ async def creating(ctx: Message, state: FSMContext):
 
 	# * When state finished
 	data, args = await state.get_data(), list(args_by_state.values())
-
-
+	new_words: List[str] = data.get(args[2]).lower().split()
+	all_words = WdEditService.series_words_list(pd.get_table("word").get("word"))
+	ignore_words = WdEditService.remove_exist(new_words, all_words)
+	WdEditService.remove_items(new_words, ignore_words)
 
 	# * Add a new group at database
 	pd.insert("city", City(
 		index=data.get(args[0]),
 		message=data.get(args[1]),
+		word=new_words + [data.get(args[0])],
 		channel_url=chat.id if chat else 0
 	))
 

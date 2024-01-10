@@ -11,3 +11,5 @@ class CtEditState(StatesGroup):
     message = State()
     url = State()
     remove = State()
+    words_remove = State()
+    words_add = State()

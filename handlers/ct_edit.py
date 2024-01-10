@@ -20,6 +20,8 @@ router = Router(name="ct_edit")
 @router.message(OR_STATE(
 	CtEditState.name,
 	CtEditState.message,
+	CtEditState.words_remove,
+	CtEditState.words_add,
 	CtEditState.url), OnlyUser(pd))
 async def setter(ctx: Message, state: FSMContext):
 	"""
@@ -77,11 +79,53 @@ async def setter(ctx: Message, state: FSMContext):
 				return
 		else:
 			chat = None
+
+
 		await ctx.answer(templates.ct_edit.edit_url_success.format(
 			name=work_group
 		))
 		print('edit_chat')
 		pd.inplace_value("city", work_group, "channel_url", chat.id if chat else 0)
+
+	elif current_state == CtEditState.words_add.state:
+
+		new_words = list(set(ctx.text.lower().split()))
+		last_worlds = table.at[work_group, "word"]
+		all_words = WdEditService.series_words_list(table.get("word"))
+		ignore_words = WdEditService.remove_exist(new_words, all_words)
+		WdEditService.remove_items(new_words, ignore_words)
+
+		# * If ignore_words is not empty
+		await ctx.answer(templates.wd_edit.edit_word_add_ignore.format(
+			words=", ".join(ignore_words)
+		)) if len(ignore_words) else ...
+
+		# * If new_words is not empty
+		await ctx.answer(templates.wd_edit.edit_word_add_success.format(
+			name=work_group, words=", ".join(new_words)
+		)) if len(new_words) else ...
+
+		pd.inplace_value("city", work_group, "word", last_worlds + new_words)
+
+	# * If user want to edit a word of group (ADD)
+	elif current_state == CtEditState.words_remove.state:
+
+		new_words = set(ctx.text.lower().split())
+		last_words = table.at[work_group, "word"]
+		ignore_words = WdEditService.remove_non_exist(new_words, last_words)
+		WdEditService.remove_items(new_words, ignore_words)
+
+		# * If ignore_words is not empty
+		await ctx.answer(templates.wd_edit.edit_word_remove_ignore.format(
+			words=", ".join(ignore_words)
+		)) if len(ignore_words) else ...
+
+		# * If new_words is not empty
+		await ctx.answer(templates.wd_edit.edit_word_remove_success.format(
+			name=work_group, words=", ".join(new_words)
+		)) if len(new_words) else ...
+
+		pd.inplace_value("city", work_group, "word", last_words)
 	else:
 		await ctx.answer(templates.ct_edit.edit_message_success.format(
 			name=work_group, new=ctx.text
@@ -131,13 +175,15 @@ async def main(ctx: Message, state: FSMContext, forced_group_name: str = None):
 	if group.channel_url:
 		try:
 			chat = await bot.get_chat(group.channel_url)
-			chat = f"<a href='{chat.invite_link}'>{chat.title}</a>"
+			link = chat.invite_link if chat.invite_link else f"https://t.me/{chat.active_usernames[0]}"
+			chat = f"<a href='{link}'>{chat.title}</a>"
 		except Exception as e:
 			print(e)
 	response_text = templates.ct_edit.text.format(
 		group_name=work_name_group,
 		create_by=0,
 		message=group.message,
+		words='\n'.join(sorted(group.word)),
 		channel_url=chat
 	)
 

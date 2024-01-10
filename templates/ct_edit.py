@@ -8,6 +8,8 @@ class Button:
 
     name = KeyboardButton(text="📧 Изменить имя города")
     message = KeyboardButton(text="💬 Изменить сообщение")
+    remove_words = KeyboardButton(text="🗑 Удалить слова")
+    add_words = KeyboardButton(text="🆕 Добавить слова")
     url = KeyboardButton(text="🔗 Изменить чат")
     remove = KeyboardButton(text="🗑 Удалить город")
     cancel = KeyboardButton(text="◀️ Назад")
@@ -31,6 +33,9 @@ text = """
 
 <b>Чат для перессылки сообщений:</b>
 {channel_url}
+
+<b>Слова города:</b>
+{words}
 """
 
 
@@ -51,6 +56,33 @@ edit_message = """
 """
 remove_city = """
 Город удален
+"""
+
+
+edit_word_add = """
+Отправьте слова <b>через проблем</b>, чтобы <b>добавить</b> из в группу
+"""
+
+edit_word_add_success = """
+✅ <b>Новое слова:</b> <i>{words}</i> <b>были успешно добавлены в группу</b> <i>{name}</i>
+"""
+
+edit_word_add_ignore = """
+🆗 <b>Слова:</b> <i>{words}</i> <b>были игнорированы!</b>
+
+ℹ️ <i>Эти слова уже существуют в другой группе!</i>
+"""
+
+edit_word_remove = """
+Отправьте слова <b>через проблем</b>, чтобы <b>удалить></b> из в группу
+"""
+
+edit_word_remove_success = """
+✅ <b>Слова:</b> <i>{words}</i> <b>были успешно удалены из группы</b> <i>{name}</i>
+"""
+
+edit_word_remove_ignore = """
+🆗 <b>Слова:</b> <i>{words}</i> <b>были игнорированы!</b>
 """
 
 edit_url = """
@@ -83,6 +115,7 @@ edit_kb = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
 
 kb = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
     [Button.message, Button.name],
+    [Button.add_words, Button.remove_words],
     [Button.url],
     [Button.remove],
     [Button.cancel]
@@ -92,12 +125,16 @@ kb = ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
 state_by_button = {
     Button.name.text : CtEditState.name,
     Button.message.text : CtEditState.message,
+    Button.add_words.text : CtEditState.words_add,
+    Button.remove_words.text : CtEditState.words_remove,
     Button.url.text: CtEditState.url,
 }
 
 text_by_button = {
     Button.name.text : edit_name,
     Button.message.text : edit_message,
+    Button.add_words.text: edit_word_add,
+    Button.remove_words.text: edit_word_remove,
     Button.url.text : edit_url,
     Button.remove.text: remove_city,
 }

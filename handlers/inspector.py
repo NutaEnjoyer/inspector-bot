@@ -19,12 +19,13 @@ router = Router(name="inspector")
 
 @router.message(OnlyGroup(), OnlyUser(pd))
 async def main(ctx: Message):
-    print('ADMIN!!')
 
     if ctx.text:
         response_text = ctx.text.lower()
+        txt = ctx.text
     elif ctx.caption:
         response_text = ctx.caption.lower()
+        txt = ctx.caption
     else:
         return
 
@@ -32,7 +33,6 @@ async def main(ctx: Message):
 
     all_user = pd.get_table("user")
 
-    print(all_user.index)
 
     # ! analyze
 
@@ -46,28 +46,45 @@ async def main(ctx: Message):
                 cities.append([msgs[i], chnl_urls[i]])
         return cities
 
-    cities = city_analyze()
+    def analyze(x):
+        if not x: return
+        for word in x:
 
-    if cities:
-        channel_index = random.randint(0, len(cities) - 1)
-        message = await ctx.answer(text=cities[channel_index][0].format(
-            user=InspectorService.get_user(ctx)
-        ))
+            if response_text.find(word) >= 0:
+                return True
+
+    cities = all_city["message"]. \
+        where(all_city["word"].apply(analyze)). \
+        dropna(). \
+        reset_index(drop=True)
+    cities2 = all_city["channel_url"]. \
+        where(all_city["word"].apply(analyze)). \
+        dropna(). \
+        reset_index(drop=True)
+
+    if cities is not None:
+           # help(cities["message"])
+        message = await ctx.answer(text=cities[0].format(
+                user=InspectorService.get_user(ctx)
+            ))
         pd.insert("gmsg", GroupMessage(
-            index=message.message_id,
-            chat_id=message.chat.id,
-            sender=message.from_user.id,
-            time=datetime.now().timestamp()
-        ))
-        if cities[channel_index][1]:
-            chat = await bot.get_chat(cities[channel_index][1])
+                index=message.message_id,
+                chat_id=message.chat.id,
+                sender=message.from_user.id,
+                time=datetime.now().timestamp()
+            ))
+        if cities2[0] is not None and cities2[0] != 0:
+            print(cities2[0])
+            chat = await bot.get_chat(cities2[0])
             try:
-                await ctx.forward(chat.id)
+                url = ctx.get_url()
+                text = f"""{txt}\n\nАвтор: {ctx.from_user.first_name}\nПост: <a href="{url}">ссылка</a>"""
+                await bot.send_message(chat.id, text)
+
             except Exception as e:
                 print(f'Exception while forward message: {e}')
-    else:
-        return
-
+        else:
+            return
 
     pd.insert("gmsg", GroupMessage(
         index=message.message_id,
@@ -83,8 +100,10 @@ async def main(ctx : Message):
 
     if ctx.text:
         response_text = ctx.text.lower()
+        txt = ctx.text
     elif ctx.caption:
         response_text = ctx.caption.lower()
+        txt = ctx.caption
     else:
         return
 
@@ -118,22 +137,33 @@ async def main(ctx : Message):
     def city_analyze():
         indexes = list(all_city.index.values)
         msgs = list(all_city.message.values)
+        chnl_urls = list(all_city.channel_url.values)
         cities = []
         for i in range(len(indexes)):
             if indexes[i].lower() in response_text:
-                cities.append(msgs[i])
+                cities.append([msgs[i], chnl_urls[i]])
         return cities
-            
+
+
+
     messages = all_word["message"].\
         where(all_word["word"].apply(analyze)).\
         dropna().\
         reset_index(drop=True)
 
-    cities = city_analyze()
+    cities = all_city["message"]. \
+        where(all_city["word"].apply(analyze)). \
+        dropna(). \
+        reset_index(drop=True)
+    cities2 = all_city["channel_url"]. \
+        where(all_city["word"].apply(analyze)). \
+        dropna(). \
+        reset_index(drop=True)
 
     if messages.empty:
-        if cities:
-            message = await ctx.answer(text=random.choice(cities).format(
+        if cities is not None:
+            # help(cities["message"])
+            message = await ctx.answer(text=cities[0].format(
                 user=InspectorService.get_user(ctx)
             ))
             pd.insert("gmsg", GroupMessage(
@@ -142,6 +172,19 @@ async def main(ctx : Message):
                 sender=message.from_user.id,
                 time=datetime.now().timestamp()
             ))
+            if cities2[0] is not None and cities2[0] != 0:
+                print(cities2[0])
+                chat = await bot.get_chat(cities2[0])
+                try:
+                    user_text = f"""<a href="{ctx.from_user.url}">{ctx.from_user.first_name}</a>"""
+                    url = ctx.get_url()
+                    text = f"""{txt}\n\nАвтор: {ctx.from_user.first_name}\nПост: <a href="{url}">ссылка</a>"""
+                    await bot.send_message(chat.id, text)
+
+                except Exception as e:
+                    print(f'Exception while forward message: {e}')
+        else:
+            return
 
         return
 
