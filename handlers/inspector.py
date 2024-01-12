@@ -64,7 +64,7 @@ async def main(ctx: Message):
 
     if cities is not None:
            # help(cities["message"])
-        message = await ctx.answer(text=cities[0].format(
+        message = await ctx.reply(text=cities[0].format(
                 user=InspectorService.get_user(ctx)
             ))
         pd.insert("gmsg", GroupMessage(
@@ -77,8 +77,8 @@ async def main(ctx: Message):
             print(cities2[0])
             chat = await bot.get_chat(cities2[0])
             try:
-                url = ctx.get_url()
-                text = f"""{txt}\n\nАвтор: {ctx.from_user.first_name}\nПост: <a href="{url}">ссылка</a>"""
+                user_text = f"""<a href="{ctx.from_user.url}">{ctx.from_user.first_name}</a>"""
+                text = f"""{txt}\n\nUsername: @{ctx.from_user.username}\nАвтор: {user_text}"""
                 await bot.send_message(chat.id, text)
 
             except Exception as e:
@@ -163,7 +163,7 @@ async def main(ctx : Message):
     if messages.empty:
         if cities is not None:
             # help(cities["message"])
-            message = await ctx.answer(text=cities[0].format(
+            message = await ctx.reply(text=cities[0].format(
                 user=InspectorService.get_user(ctx)
             ))
             pd.insert("gmsg", GroupMessage(
@@ -177,8 +177,9 @@ async def main(ctx : Message):
                 chat = await bot.get_chat(cities2[0])
                 try:
                     user_text = f"""<a href="{ctx.from_user.url}">{ctx.from_user.first_name}</a>"""
-                    url = ctx.get_url()
-                    text = f"""{txt}\n\nАвтор: {ctx.from_user.first_name}\nПост: <a href="{url}">ссылка</a>"""
+                    text = f"""{txt}\n\nUsername: @{ctx.from_user.username}\nАвтор: {user_text}"""
+                    # url = ctx.get_url()
+                    # text = f"""{txt}\n\nАвтор: {ctx.from_user.first_name}\nПост: <a href="{url}">ссылка</a>"""
                     await bot.send_message(chat.id, text)
 
                 except Exception as e:
