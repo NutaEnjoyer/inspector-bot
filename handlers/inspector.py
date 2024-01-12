@@ -6,6 +6,7 @@ from aiogram.types import Message
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types.chat_permissions import ChatPermissions
 
+from utils.models import MessageArchive
 from utils.table import User, UserStatus, GroupMessage
 from utils.filters import OnlyGroup, OnlyUser, OnlyDefaultUser
 from utils.service import InspectorService
@@ -62,7 +63,7 @@ async def main(ctx: Message):
         dropna(). \
         reset_index(drop=True)
 
-    if cities is not None:
+    if cities is not None and len(cities) > 0:
            # help(cities["message"])
         message = await ctx.reply(text=cities[0].format(
                 user=InspectorService.get_user(ctx)
@@ -161,7 +162,14 @@ async def main(ctx : Message):
         reset_index(drop=True)
 
     if messages.empty:
-        if cities is not None:
+        try:
+            new_message = MessageArchive.create(text=response_text)
+            new_message.save()
+        except Exception as e:
+            await ctx.delete()
+            return
+
+        if cities is not None and len(cities) > 0:
             # help(cities["message"])
             message = await ctx.reply(text=cities[0].format(
                 user=InspectorService.get_user(ctx)

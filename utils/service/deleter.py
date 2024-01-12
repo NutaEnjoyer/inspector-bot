@@ -5,7 +5,7 @@ from aiogram import Bot
 from aiogram.exceptions import TelegramBadRequest, TelegramMigrateToChat
 
 from ..pd import PandasDatabase
-
+from utils.models import MessageArchive
 
 async def check_message(pd : PandasDatabase, bot : Bot) -> timedelta.seconds:
 
@@ -39,13 +39,13 @@ async def check_message(pd : PandasDatabase, bot : Bot) -> timedelta.seconds:
     return 3
 
 
-    
 
 
 async def start_deleter(pd : PandasDatabase, bot : Bot):
 
     while True:
         delay = await check_message(pd, bot)
+        MessageArchive.delete_expired_records()
         await sleep(delay)
 
 
