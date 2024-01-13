@@ -24,8 +24,17 @@ class MessageArchive(Model):
             print("No expired records found.")
 
 
+class UserLastMention(Model):
+    id = PrimaryKeyField()
+    user_id = IntegerField()
+    last_mention = DateTimeField(default=datetime.now)
+
+    class Meta:
+        database = database
+
+
 def main():
-    database.create_tables([MessageArchive])
+    database.create_tables([UserLastMention])
 
 
 if __name__ == '__main__':

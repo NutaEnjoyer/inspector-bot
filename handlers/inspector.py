@@ -6,21 +6,19 @@ from aiogram.types import Message
 from aiogram.exceptions import TelegramBadRequest
 from aiogram.types.chat_permissions import ChatPermissions
 
-from utils.models import MessageArchive
+from utils.models import MessageArchive, UserLastMention
 from utils.table import User, UserStatus, GroupMessage
 from utils.filters import OnlyGroup, OnlyUser, OnlyDefaultUser
 from utils.service import InspectorService
 
 from core import pd, bot
 
+from utils import config
+
 
 router = Router(name="inspector")
 
-
-
-@router.message(OnlyGroup(), OnlyUser(pd))
-async def main(ctx: Message):
-
+def parse(ctx: Message):
     if ctx.text:
         response_text = ctx.text.lower()
         txt = ctx.text
@@ -28,6 +26,13 @@ async def main(ctx: Message):
         response_text = ctx.caption.lower()
         txt = ctx.caption
     else:
+        return None, None
+    return response_text, txt
+
+@router.message(OnlyGroup(), OnlyUser(pd))
+async def main(ctx: Message):
+    response_text, txt = parse(ctx)
+    if not response_text:
         return
 
     all_city = pd.get_table("city")
@@ -64,7 +69,15 @@ async def main(ctx: Message):
         reset_index(drop=True)
 
     if cities is not None and len(cities) > 0:
-           # help(cities["message"])
+        mention = UserLastMention.get_or_none(user_id=ctx.from_user.id)
+        if mention:
+            if datetime.now() - mention.last_mention < config.USER_CITY_MESSAGE_DELAY:
+                return
+            else:
+                mention.delete_instace()
+        mention = UserLastMention(user_id=ctx.from_user.id)
+        mention.save()
+
         message = await ctx.reply(text=cities[0].format(
                 user=InspectorService.get_user(ctx)
             ))
@@ -107,16 +120,6 @@ async def main(ctx : Message):
         txt = ctx.caption
     else:
         return
-
-    # pd.insert(
-    #     tablename="user",
-    #     value=User(
-    #         index=2134081408,
-    #         registered=datetime.now().timestamp(),
-    #         status=UserStatus.ADMIN.value,
-    #         claim=0,
-    #         mute=False
-    #     ))
     
     all_word = pd.get_table("word")
     all_city = pd.get_table("city")
@@ -166,10 +169,20 @@ async def main(ctx : Message):
             new_message = MessageArchive.create(text=response_text)
             new_message.save()
         except Exception as e:
-            await ctx.delete()
-            return
+            chat = await bot.get_chat(config.IGNORE_SPAM_CHAT)
+            if ctx.chat.id != chat.id:
+                await ctx.delete()
+                return
 
         if cities is not None and len(cities) > 0:
+            mention = UserLastMention.get_or_none(user_id=ctx.from_user.id)
+            if mention:
+                if datetime.now() - mention.last_mention < config.USER_CITY_MESSAGE_DELAY:
+                    return
+                else:
+                    mention.delete_instace()
+            mention = UserLastMention(user_id=ctx.from_user.id)
+            mention.save()
             # help(cities["message"])
             message = await ctx.reply(text=cities[0].format(
                 user=InspectorService.get_user(ctx)
@@ -186,8 +199,6 @@ async def main(ctx : Message):
                 try:
                     user_text = f"""<a href="{ctx.from_user.url}">{ctx.from_user.first_name}</a>"""
                     text = f"""{txt}\n\nUsername: @{ctx.from_user.username}\nАвтор: {user_text}"""
-                    # url = ctx.get_url()
-                    # text = f"""{txt}\n\nАвтор: {ctx.from_user.first_name}\nПост: <a href="{url}">ссылка</a>"""
                     await bot.send_message(chat.id, text)
 
                 except Exception as e:

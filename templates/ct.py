@@ -1,6 +1,6 @@
 from aiogram.types.reply_keyboard_markup import ReplyKeyboardMarkup
 from aiogram.types.keyboard_button import KeyboardButton
-
+import numpy as np
 
 class Button:
 
@@ -16,5 +16,5 @@ action_text = """
 
 action_kb = lambda group_list : ReplyKeyboardMarkup(resize_keyboard=True, keyboard=[
     [Button.create, Button.cancel],
-    *[[Button.group(name)] for name in group_list]
+    *[[Button.group(name) for name in group_list][i:i + 3] for i in range(0, len([Button.group(name) for name in group_list]), 3)]
 ])
