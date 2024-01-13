@@ -71,10 +71,10 @@ async def main(ctx: Message):
     if cities is not None and len(cities) > 0:
         mention = UserLastMention.get_or_none(user_id=ctx.from_user.id)
         if mention:
-            if datetime.now() - mention.last_mention < config.USER_CITY_MESSAGE_DELAY:
+            if datetime.now() - mention.last_mention < timedelta(seconds=config.USER_CITY_MESSAGE_DELAY):
                 return
             else:
-                mention.delete_instace()
+                mention.delete_instance()
         mention = UserLastMention(user_id=ctx.from_user.id)
         mention.save()
 
@@ -169,18 +169,20 @@ async def main(ctx : Message):
             new_message = MessageArchive.create(text=response_text)
             new_message.save()
         except Exception as e:
-            chat = await bot.get_chat(config.IGNORE_SPAM_CHAT)
-            if ctx.chat.id != chat.id:
+            chats = [await bot.get_chat(i) for i in config.IGNORE_SPAM_CHAT]
+            chats = [i.id for i in chats]
+            print(chats)
+            if ctx.chat.id not in chats:
                 await ctx.delete()
                 return
 
         if cities is not None and len(cities) > 0:
             mention = UserLastMention.get_or_none(user_id=ctx.from_user.id)
             if mention:
-                if datetime.now() - mention.last_mention < config.USER_CITY_MESSAGE_DELAY:
+                if datetime.now() - mention.last_mention < timedelta(seconds=config.USER_CITY_MESSAGE_DELAY):
                     return
                 else:
-                    mention.delete_instace()
+                    mention.delete_instance()
             mention = UserLastMention(user_id=ctx.from_user.id)
             mention.save()
             # help(cities["message"])
