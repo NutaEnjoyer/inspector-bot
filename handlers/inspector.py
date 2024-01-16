@@ -13,6 +13,8 @@ from utils.service import InspectorService
 
 from core import pd, bot
 
+import time
+
 from utils import config
 
 
@@ -91,8 +93,10 @@ async def main(ctx: Message):
             print(cities2[0])
             chat = await bot.get_chat(cities2[0])
             try:
+                time.sleep(10)
                 user_text = f"""<a href="{ctx.from_user.url}">{ctx.from_user.first_name}</a>"""
                 text = f"""{txt}\n\nUsername: @{ctx.from_user.username}\nАвтор: {user_text}"""
+
                 await bot.send_message(chat.id, text)
 
             except Exception as e:
@@ -100,12 +104,12 @@ async def main(ctx: Message):
         else:
             return
 
-    pd.insert("gmsg", GroupMessage(
-        index=message.message_id,
-        chat_id=message.chat.id,
-        sender=message.from_user.id,
-        time=datetime.now().timestamp()
-    ))
+        pd.insert("gmsg", GroupMessage(
+            index=message.message_id,
+            chat_id=message.chat.id,
+            sender=message.from_user.id,
+            time=datetime.now().timestamp()
+        ))
 
 
 @router.message(OnlyGroup())
@@ -159,6 +163,12 @@ async def main(ctx : Message):
         where(all_city["word"].apply(analyze)). \
         dropna(). \
         reset_index(drop=True)
+
+    cities3 = all_city["index"]. \
+        where(all_city["word"].apply(analyze)). \
+        dropna(). \
+        reset_index(drop=True)
+
     cities2 = all_city["channel_url"]. \
         where(all_city["word"].apply(analyze)). \
         dropna(). \
@@ -172,6 +182,7 @@ async def main(ctx : Message):
             chats = [await bot.get_chat(i) for i in config.IGNORE_SPAM_CHAT]
             chats = [i.id for i in chats]
             print(chats)
+            print(ctx.chat)
             if ctx.chat.id not in chats:
                 await ctx.delete()
                 return
@@ -183,8 +194,15 @@ async def main(ctx : Message):
                     return
                 else:
                     mention.delete_instance()
-            mention = UserLastMention(user_id=ctx.from_user.id)
-            mention.save()
+            if 'москва' in [i.lower() for i in cities3]:
+                mention = UserLastMention(user_id=ctx.from_user.id, last_mention=datetime.now() - timedelta(hours=36))
+                mention.save()
+            elif 'питер' in [i.lower() for i in cities3]:
+                mention = UserLastMention(user_id=ctx.from_user.id, last_mention=datetime.now()- timedelta(hours=16))
+                mention.save()
+            else:
+                mention = UserLastMention(user_id=ctx.from_user.id, last_mention=datetime.now())
+                mention.save()
             # help(cities["message"])
             message = await ctx.reply(text=cities[0].format(
                 user=InspectorService.get_user(ctx)
@@ -199,6 +217,7 @@ async def main(ctx : Message):
                 print(cities2[0])
                 chat = await bot.get_chat(cities2[0])
                 try:
+                    time.sleep(10)
                     user_text = f"""<a href="{ctx.from_user.url}">{ctx.from_user.first_name}</a>"""
                     text = f"""{txt}\n\nUsername: @{ctx.from_user.username}\nАвтор: {user_text}"""
                     await bot.send_message(chat.id, text)
